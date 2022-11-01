@@ -1,0 +1,93 @@
+---
+title: "R Notebook"
+output:
+  pdf_document: default
+  html_notebook: default
+---
+
+
+
+```{r}
+
+### Jose Mancilla ####
+### September 20th 2022 ####
+
+#1) set up 
+library('caret')
+library('rpart')
+library ('rpart.plot')
+library('tidyverse')
+kidney_disease=read.csv("Kidney_disease.csv")
+
+
+
+#2) test and training data
+sample_data<-sample(c(TRUE,FALSE),nrow(kidney_disease),replace=TRUE,prob =c(0.7,0.3))
+train_data <- kidney_disease[sample_data,]
+test_data <- kidney_disease[!sample_data,]
+
+
+#3)Train data
+#Original data set
+kidney_disease$nausea<-ifelse(kidney_disease$nausea=="yes",1,0)
+kidney_disease$nephritis<-ifelse(kidney_disease$nephritis=="yes",1,0)
+kidney_disease$backpain<-ifelse(kidney_disease$backpain=="yes",1,0)
+kidney_disease$pushing<-ifelse(kidney_disease$pushing=="yes",1,0)
+kidney_disease$pain<-ifelse(kidney_disease$pain=="yes",1,0)
+kidney_disease$itching<-ifelse(kidney_disease$itching=="yes",1,0)
+
+#Train data to 1 and 0
+train_data$nausea<-ifelse(train_data$nausea=="yes",1,0)
+train_data$nephritis<-ifelse(train_data$nephritis=="yes",1,0)
+train_data$backpain<-ifelse(train_data$backpain=="yes",1,0)
+train_data$pushing<-ifelse(train_data$pushing=="yes",1,0)
+train_data$pain<-ifelse(train_data$pain=="yes",1,0)
+train_data$itching<-ifelse(train_data$itching=="yes",1,0)
+
+
+#Test data to 1 and 0
+test_data$nausea<-ifelse(test_data$nausea=="yes",1,0)
+test_data$nephritis<-ifelse(test_data$nephritis=="yes",1,0)
+test_data$backpain<-ifelse(test_data$backpain=="yes",1,0)
+test_data$pushing<-ifelse(test_data$pushing=="yes",1,0)
+test_data$pain<-ifelse(test_data$pain=="yes",1,0)
+test_data$itching<-ifelse(test_data$itching=="yes",1,0)
+
+#train our data as factor of nephritis using k neareast neighbor method
+kidneyTrain <- train(y=as.factor(train_data$nephritis),
+                     x=train_data[2:6],
+                     method="knn")
+
+print(kidneyTrain)
+
+#4) Test data
+kidneyPredict <- predict(kidneyTrain,test_data)
+confusionMatrix(as.factor(test_data$nephritis),kidneyPredict)
+print(kidneyPredict)
+
+
+#5) Train a decision tree
+KidneyTree=rpart(nephritis ~ temp+nausea+backpain+pushing+pain+itching, data =train_data,method="class")
+summary(KidneyTree)
+
+#6) View the Decision Tree
+rpart.plot(KidneyTree)
+
+#7) Test the Decision Tree
+KidneyTreePredict<-predict(KidneyTree,test_data,type = "class")
+print(KidneyTreePredict)
+confusionMatrix(as.factor(test_data$nephritis),KidneyTreePredict)
+
+
+
+
+
+
+
+
+
+
+```
+
+
+
